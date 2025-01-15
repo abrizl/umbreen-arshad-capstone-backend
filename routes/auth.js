@@ -5,34 +5,66 @@ const jwt = require('jsonwebtoken');
 const db = require('../db/knex');
 
 router.post('/register', async (req, res) => {
-  const { name, email, phone_number, password } = req.body;
-
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const { email, password } = req.body;
 
   try {
-    const [user] = await db('users').insert({
-      name,
-      email,
-      phone_number,
-      password_hash: hashedPassword,
-    });
+    let user = await db('users').where({ email }).first();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    if (user && user.password_hash) {
+      return res.status(400).json({ error: 'Email already registered.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    if (user) {
+      // Convert guest to registered user
+      await db('users')
+        .where({ email })
+        .update({
+          password_hash: hashedPassword,
+          role: 'registered',
+          updated_at: new Date()
+        });
+    } else {
+      // Create a new user
+      await db('users').insert({
+        email,
+        password_hash: hashedPassword,
+        role: 'registered'
+      });
+    }
+
+    res.status(201).json({ message: 'Account created successfully!' });
   } catch (err) {
-    res.status(400).json({ error: 'Email already exists' });
+    console.error(err);
+    res.status(500).json({ error: 'Server error.' });
   }
 });
+
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await db('users').where({ email }).first();
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
 
-  if (user && await bcrypt.compare(password, user.password_hash)) {
+  try {
+    const user = await db('users').where({ email }).first();
+
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(400).json({ error: 'Invalid email or password.' });
+    }
+
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.json({ token });
-  } else {
-    res.status(400).json({ error: 'Invalid credentials' });
+
+    res.json({
+      message: 'Login successful',
+      user: { id: user.id, name: user.name, email: user.email },
+      token,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error. Please try again later.' });
   }
 });
 

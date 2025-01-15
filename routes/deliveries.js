@@ -49,13 +49,20 @@ router.post('/', authenticateToken, async (req, res) => {
 
     // Insert guest user if not logged in
     if (!userId) {
-      const [guestId] = await db('users').insert({
-        name,
-        email,
-        phone_number,
-        password_hash: ''  // No password for guest users
-      });
-      userId = guestId;
+      let existingUser = await db('users').where({ email }).first();
+    
+      if (existingUser) {
+        userId = existingUser.id;  // Use existing user ID
+      } else {
+        const [guestId] = await db('users').insert({
+          name,
+          email,
+          phone_number,
+          password_hash: '',  // No password for guest users
+          role: 'guest'
+        });
+        userId = guestId;
+      }
     }
 
     
