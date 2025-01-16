@@ -37,10 +37,10 @@ function generateDateRange(startDate, endDate) {
 
 // Schedule a delivery (for logged-in and guest users)
 router.post('/', authenticateToken, async (req, res) => {
-  const { area_id, delivery_slot, scheduled_dates, name, email, phone_number, address } = req.body;
+  const { area_id, delivery_slot, scheduled_dates, name, email, phone_number, address, quantity } = req.body;
 
   // Validation for required fields
-  if (!area_id || !delivery_slot || !scheduled_dates || !name || !email || !phone_number || !address) {
+  if (!area_id || !delivery_slot || !scheduled_dates || !name || !email || !phone_number || !address || !quantity) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -83,7 +83,8 @@ router.post('/', authenticateToken, async (req, res) => {
           delivery_slot: slot,      // One slot per row
           scheduled_date: date,     // One date per row
           address: address,
-          status: 'Pending'
+          status: 'Pending',
+          quantity
         });
       })
     );
