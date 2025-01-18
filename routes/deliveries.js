@@ -98,6 +98,24 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Get delivery by ID
+router.get('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const delivery = await db('deliveries').where({ id }).first();
+
+    if (!delivery) {
+      return res.status(404).json({ error: 'Delivery not found' });
+    }
+
+    res.status(200).json(delivery);
+  } catch (err) {
+    console.error('Error fetching delivery:', err);
+    res.status(500).json({ error: 'Error fetching delivery' });
+  }
+});
+
 module.exports = router;
 
 
