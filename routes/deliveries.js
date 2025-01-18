@@ -116,6 +116,73 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Update delivery by ID
+router.put('/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { address, delivery_slot, scheduled_dates, quantity } = req.body;
+
+  // Validation
+  if (!address || !delivery_slot || !scheduled_dates || !quantity) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    const delivery = await db('deliveries').where({ id }).first();
+
+    if (!delivery) {
+      return res.status(404).json({ error: 'Delivery not found' });
+    }
+
+    if (delivery.status !== 'Pending') {
+      return res.status(400).json({ error: 'Only pending deliveries can be updated' });
+    }
+
+    // Update delivery
+    await db('deliveries')
+      .where({ id })
+      .update({
+        address,
+        delivery_slot,
+        scheduled_date: scheduled_dates[0], // Assuming single-date updates
+        quantity,
+        updated_at: db.fn.now()
+      });
+
+    res.status(200).json({ message: 'Delivery updated successfully' });
+
+  } catch (err) {
+    console.error('Error updating delivery:', err);
+    res.status(500).json({ error: 'Error updating delivery' });
+  }
+});
+
+// DELETE delivery by ID
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const delivery = await db('deliveries').where({ id }).first();
+
+      if (!delivery) {
+          return res.status(404).json({ error: 'Delivery not found' });
+      }
+
+      if (delivery.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Unauthorized to cancel this delivery' });
+      }
+      
+      if (delivery.status !== 'Pending') {
+          return res.status(400).json({ error: 'Only pending deliveries can be canceled' });
+      }
+
+      await db('deliveries').where({ id }).del();
+      res.status(200).json({ message: 'Delivery canceled successfully' });
+  } catch (err) {
+      console.error('Error canceling delivery:', err);
+      res.status(500).json({ error: 'Error canceling delivery' });
+  }
+});
+
 module.exports = router;
 
 
