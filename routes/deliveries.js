@@ -170,7 +170,7 @@ router.delete('/:id', async (req, res) => {
       if (delivery.user_id !== req.user.id) {
         return res.status(403).json({ error: 'Unauthorized to cancel this delivery' });
       }
-      
+
       if (delivery.status !== 'Pending') {
           return res.status(400).json({ error: 'Only pending deliveries can be canceled' });
       }
@@ -181,6 +181,11 @@ router.delete('/:id', async (req, res) => {
       console.error('Error canceling delivery:', err);
       res.status(500).json({ error: 'Error canceling delivery' });
   }
+});
+
+
+router.get('/', (req, res) => {
+  res.status(200).json({ message: 'Deliveries route is working' });
 });
 
 module.exports = router;
