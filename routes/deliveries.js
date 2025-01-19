@@ -183,11 +183,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-
-router.get('/', (req, res) => {
-  res.status(200).json({ message: 'Deliveries route is working' });
-});
-
 module.exports = router;
 
 
