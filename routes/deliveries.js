@@ -98,6 +98,20 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Get all deliveries
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const deliveries = await db('deliveries')
+      .where({ user_id: req.user.id })
+      .orderBy('scheduled_date', 'asc'); //
+
+    res.status(200).json(deliveries);
+  } catch (err) {
+    console.error('Error fetching deliveries:', err);
+    res.status(500).json({ error: 'Error fetching deliveries' });
+  }
+});
+
 // Get delivery by ID
 router.get('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
