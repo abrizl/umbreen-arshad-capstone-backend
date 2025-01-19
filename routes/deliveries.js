@@ -101,9 +101,13 @@ router.post('/', authenticateToken, async (req, res) => {
 // Get all deliveries
 router.get('/', authenticateToken, async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Unauthorized: No user ID found' });
+    }
+
     const deliveries = await db('deliveries')
       .where({ user_id: req.user.id })
-      .orderBy('scheduled_date', 'asc'); //
+      .orderBy('scheduled_date', 'asc');
 
     res.status(200).json(deliveries);
   } catch (err) {
