@@ -32,4 +32,24 @@ router.get('/my-deliveries', authenticateToken, async (req, res) => {
     }
 });
 
+// Get user information for the logged-in user
+router.get('/user-info', authenticateToken, async (req, res) => {
+    try {
+        const user = await db('users')
+            .select('id', 'name', 'email', 'phone_number', 'address', 'created_at', 'updated_at')
+            .where({ id: req.user.id })
+            .first();
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        res.status(200).json(user);
+    } catch (err) {
+        console.error('Error fetching user information:', err);
+        res.status(500).json({ error: 'Failed to fetch user information' });
+    }
+});
+
+
 module.exports = router;
