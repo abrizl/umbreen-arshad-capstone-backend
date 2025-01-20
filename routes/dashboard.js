@@ -36,7 +36,7 @@ router.get('/my-deliveries', authenticateToken, async (req, res) => {
 router.get('/user-info', authenticateToken, async (req, res) => {
     try {
         const user = await db('users')
-            .select('id', 'name', 'email', 'phone_number', 'address', 'created_at', 'updated_at')
+            .select('id', 'name', 'email', 'phone_number', 'created_at', 'updated_at')
             .where({ id: req.user.id })
             .first();
 
