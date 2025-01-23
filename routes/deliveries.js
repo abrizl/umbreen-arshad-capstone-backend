@@ -175,7 +175,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE delivery by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
   try {
